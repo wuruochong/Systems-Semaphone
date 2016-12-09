@@ -1,4 +1,4 @@
 semaphone: control.c
-	gcc control.c -o control
+	gcc control.c -g -o control
 clean:
 	rm control

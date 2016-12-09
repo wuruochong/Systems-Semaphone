@@ -42,7 +42,7 @@ int main(int argc, char * argv[]){
       sc = semctl(semid, 0, GETVAL);
       printf("semaphore value: %d\n",sc);
       shmid = shmget(shmkey, sizeof(int), 0);
-      int * v;
+      int * v = (int *)malloc(sizeof(int));
       shmat(shmid, v, SHM_RDONLY);
       printf("shared memory: %d\n", *v);
       int fd = open("story", O_RDONLY);
@@ -50,9 +50,9 @@ int main(int argc, char * argv[]){
       stat("story", &st);
       int size = st.st_size;
       printf("size: %d\n",size);
-      void * buf = malloc(1000);
+      void * buf = malloc(size);
       read(fd, buf, size);
-      // printf("Story:%s", buf);
+      printf("Story:%s\n", buf);
     }
     else if(strncmp(argv[1], "-r", strlen(argv[1])) == 0){
       semid = semget(key, 1, 0);
