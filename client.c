@@ -24,7 +24,20 @@ int tryaccess(){
   // return su.val;
 }
 
+void writeline(char * line){
+  int fid = open("story", O_APPEND|O_WRONLY);
+  int shmkey = ftok("makefile",23);
+  int shmid = shmget(shmkey, 1, 0);
+  int * v = (int*)malloc(sizeof(int));
+  shmat(shmid, v, 0);
+  *v = strlen(line);
+  shmdt(v);
+  write(fid, line, strlen(line));
+  close(fid);
+}
+
 int main(){
   char * line;
   printf("semval: %d\n", tryaccess());
+  writeline("\nDoes this work?\n");
 }

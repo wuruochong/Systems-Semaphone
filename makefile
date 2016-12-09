@@ -3,3 +3,4 @@ semaphone: control.c
 	gcc client.c -g -o client
 clean:
 	rm control
+	rm client

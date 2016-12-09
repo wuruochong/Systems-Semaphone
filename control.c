@@ -33,7 +33,7 @@ int main(int argc, char * argv[]){
       su.val = 1;
       sc = semctl(semid, 0, SETVAL, su);
       printf("value set: %d\n", sc);
-      id = open("story", O_CREAT|O_EXCL|O_TRUNC,0644);
+      id = open("story", O_CREAT|O_TRUNC,0644);
       printf("file created: %d\n", id);
       int cv = close(id);
     }
