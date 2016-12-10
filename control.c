@@ -42,6 +42,7 @@ int main(int argc, char * argv[]){
       sc = semctl(semid, 0, GETVAL);
       printf("semaphore value: %d\n",sc);
       shmid = shmget(shmkey, sizeof(int), 0);
+      printf("shmid:%d\n",shmid);
       int * v = (int *)malloc(sizeof(int));
       shmat(shmid, v, SHM_RDONLY);
       printf("shared memory: %d\n", *v);

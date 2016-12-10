@@ -28,10 +28,14 @@ void writeline(char * line){
   int fid = open("story", O_APPEND|O_WRONLY);
   int shmkey = ftok("makefile",23);
   int shmid = shmget(shmkey, 1, 0);
-  int * v = (int*)malloc(sizeof(int));
+  printf("shmid: %d\n",shmid);
+  int * v = (int*)(malloc(sizeof(int)));
   shmat(shmid, v, 0);
   *v = strlen(line);
-  shmdt(v);
+  printf("value: %d\n", *v);
+  // shmdt(v);
+  // int v = strlen(line);
+  // shmctl(shmid, IPC_SET, &v);
   write(fid, line, strlen(line));
   close(fid);
 }
@@ -40,4 +44,9 @@ int main(){
   char * line;
   printf("semval: %d\n", tryaccess());
   writeline("\nDoes this work?\n");
+  int shmkey = ftok("makefile",23);
+  int shmid = shmget(shmkey, 1, 0);
+  int * v = (int*)(malloc(sizeof(int)));
+  shmat(shmid, v, 0);
+  printf("value of shm: %d\n", *v);
 }
