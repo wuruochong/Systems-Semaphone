@@ -9,14 +9,14 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-/*
+
 union semun{
     int val;
     struct semid_ds *buff;
     unsigned long *buffer;
     struct seminfo *_buf;
 };
-*/
+
 
 int tryaccess(){
     int key = ftok("makefile",22);
@@ -26,7 +26,12 @@ int tryaccess(){
     // return su.val;
 }
 
-void writeline(char * line){
+void writeline(){
+    printf("Please enter the next line of the story: ");
+    //may want to give input variable size, but i don't believe that is possible.
+    char line[4096];
+    fgets(line, sizeof(line), stdin);
+    // writeline(input);
     int fid = open("story", O_APPEND|O_WRONLY);
     int shmkey = ftok("makefile",23);
     int shmid = shmget(shmkey, 1, 0);
@@ -87,17 +92,31 @@ int main(){
     shmat(shmid, v, 0);
     printf("value of shm: %d\n", *v);
     */
-
+    printf("Trying to access\n");
+    while (1){
+      if(tryaccess()){
+        int key = ftok("makefile",22);
+        int semid = semget(key,0,0);
+        struct sembuf sb;
+        sb.sem_op = -1;
+        sb.sem_num = 0;
+        sb.sem_flg = SEM_UNDO;
+        semop(semid,&sb,1);
+        printf("Access Granted!\n");
+        printf("Last line in story:\n");
+        writeline();
+        sb.sem_op = 1;
+        // sb.sem_flg = 0;
+        semop(semid,&sb,1);
+        return 0;
+      }
+    }
     //Reading from the file is still in defvelopment
-    printf("Last Line in Story: %s\n", readline());
+    // printf("Last Line in Story: %s\n", readline());
 
 
     //Writing to file works
-    /*
-    printf("Please enter the next line of the story: ");
-    //may want to give input variable size, but i don't believe that is possible.
-    char input[4096];
-    fgets(input, sizeof(input), stdin);
-    writeline(input);
-    */
+
+
+
 }
