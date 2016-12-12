@@ -9,14 +9,14 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-
+/*
 union semun{
-  int val;
-  struct semid_ds *buff;
-  unsigned long *buffer;
-  struct seminfo *_buf;
+    int val;
+    struct semid_ds *buff;
+    unsigned long *buffer;
+    struct seminfo *_buf;
 };
-
+*/
 
 int main(int argc, char * argv[]){
     int semid;

@@ -9,114 +9,74 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-
+/*
 union semun{
     int val;
     struct semid_ds *buff;
     unsigned long *buffer;
     struct seminfo *_buf;
 };
-
+*/
 
 int tryaccess(){
     int key = ftok("makefile",22);
     int semid = semget(key,0,0);
     union semun su;
     return semctl(semid, 0, GETVAL, su);
-    // return su.val;
 }
 
-void writeline(){
+int writeline(){
     printf("Please enter the next line of the story: ");
-    //may want to give input variable size, but i don't believe that is possible.
+    char input[4096];
+    fgets(input, sizeof(input), stdin);
+    int lastupdatelength = strlen(input);
+    int fid = open("story", O_WRONLY | O_APPEND);
+    write(fid, input, strlen(input));
+    close(fid);
+    return lastupdatelength;
+}
+
+
+void readline(int *lastupdatelength) {
+    printf("Last line in story: ");
     char line[4096];
-    fgets(line, sizeof(line), stdin);
-    // writeline(input);
-    int fid = open("story", O_APPEND|O_WRONLY);
-    int shmkey = ftok("makefile",23);
-    int shmid = shmget(shmkey, 1, 0);
-    printf("shmid: %d\n",shmid);
-    int * v = (int*)(malloc(sizeof(int)));
-    shmat(shmid, v, 0);
-    *v = strlen(line);
-    printf("value: %d\n", *v);
-    // shmdt(v);
-    // int v = strlen(line);
-    // shmctl(shmid, IPC_SET, &v);
-    write(fid, line, strlen(line));
+    int fid = open("story", O_RDONLY);
+    if (*lastupdatelength) {
+        lseek(fid, -1 * (*lastupdatelength), SEEK_END);
+        read(fid, line, *lastupdatelength);
+    }
+    else {
+        printf("There are no previous entries in story\n");
+    }
+    printf("%s", line);
     close(fid);
 }
 
-char * readline() {
-    char * chrStr;
-    char c;
-    char newLine[1000];
-    int fid = open("story", O_RDONLY);
-    int bytesread = -1;
-    lseek(fid, -1, SEEK_END);
-    read(fid, chrStr, 1);
-    c = chrStr[0];
-    //keeps track of the number of bytesread
-    int bread = 1;
-    //check if last char is last line
-    if(c == '\n') {
-        //pointer goes back 2, reads pushes pointer forwards 1; should allow backwards traversal of pointer over chars
-        lseek(fid, -2, SEEK_END);
-        read(fid, chrStr, 1);
-        c = chrStr[0];
-        bread++;
-        //read until end of previous line is found
-        while(c != '\n') {
-            lseek(fid, -2, SEEK_END);
-            read(fid, chrStr, 1);
-            c = chrStr[0];
-            bread++;
-        }
-        //read into newLine all the chars read; should be reading from end of second to last line to end of file aka should read only the last line
-        read(fid, newLine, bread);
-    }
-    //close file as we don't need to read anymore
-    close(fid);
-    //return a string of the last line
-    return newLine;
-}
 
 int main(){
-    /*
-    char * line;
-    printf("semval: %d\n", tryaccess());
-    writeline("\nDoes this work?\n");
-    int shmkey = ftok("makefile",23);
-    int shmid = shmget(shmkey, 1, 0);
-    int * v = (int*)(malloc(sizeof(int)));
-    shmat(shmid, v, 0);
-    printf("value of shm: %d\n", *v);
-    */
     printf("Trying to access\n");
     while (1){
       if(tryaccess()){
         int key = ftok("makefile",22);
-        int semid = semget(key,0,0);
+        int shmkey = ftok("makefile", 23);
+        int semid = semget(key, 0, 0);
+        int shmid = shmget(shmkey, 1, 0);
         struct sembuf sb;
-        sb.sem_op = -1;
+        sb.sem_op = 1;
         sb.sem_num = 0;
         sb.sem_flg = SEM_UNDO;
-        semop(semid,&sb,1);
         printf("Access Granted!\n");
-        printf("Last line in story:\n");
-        writeline();
-        sb.sem_op = 1;
-        // sb.sem_flg = 0;
+        int *lastupdatelength = shmat(shmid, 0, 0);
+
+        semop(semid, &sb, -1);
+        readline(lastupdatelength);
+        semop(semid, &sb, 1);
+
+        semop(semid, &sb, -1);
+        *lastupdatelength = writeline();
         semop(semid,&sb,1);
+
         return 0;
       }
     }
-    //Reading from the file is still in defvelopment
-    // printf("Last Line in Story: %s\n", readline());
-
-
-    //Writing to file works
-
-
-
 }
